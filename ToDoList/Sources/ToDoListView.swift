@@ -1,19 +1,36 @@
 import SwiftUI
 
+enum FilterStatus: String, CaseIterable, Identifiable {
+    case all, toDo, done
+    var id: Self { self }
+}
+
 struct ToDoListView: View {
+    
     @ObservedObject var viewModel: ToDoListViewModel
+    
     @State private var newTodoTitle = ""
     @State private var isShowingAlert = false
     @State private var isAddingTodo = false
     
     // New state for filter index
     @State private var filterIndex = 0
+    @State private var filterStatus: FilterStatus = .toDo
     
     var body: some View {
         NavigationView {
             VStack {
                 // Filter selector
                 // TODO: - Add a filter selector which will call the viewModel for updating the displayed data
+                
+                Picker("", selection: $filterStatus) {
+                    ForEach(FilterStatus.allCases, id: \.self) { status in
+                        Text(status.rawValue.capitalized).tag(status)
+                    }
+                }
+                .pickerStyle(.segmented)
+                .padding(.horizontal)
+                
                 // List of tasks
                 List {
                     ForEach(viewModel.toDoItems) { item in
@@ -45,7 +62,7 @@ struct ToDoListView: View {
                     HStack {
                         TextField("Enter Task Title", text: $newTodoTitle)
                             .padding(.leading)
-
+                        
                         Spacer()
                         
                         Button(action: {
@@ -87,7 +104,7 @@ struct ToDoListView: View {
                         .shadow(radius: 5)
                 }
                 .padding()
-
+                
             }
             .navigationBarTitle("To-Do List")
             .navigationBarItems(trailing: EditButton())
