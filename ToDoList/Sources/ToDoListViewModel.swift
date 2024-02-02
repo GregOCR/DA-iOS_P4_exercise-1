@@ -4,6 +4,8 @@ final class ToDoListViewModel: ObservableObject {
     // MARK: - Private properties
 
     private let repository: ToDoListRepositoryType
+    
+    private var index = 1                                           // added
 
     // MARK: - Init
 
@@ -18,8 +20,11 @@ final class ToDoListViewModel: ObservableObject {
     @Published var toDoItems: [ToDoItem] = [] {
         didSet {
             repository.saveToDoItems(toDoItems)
+            applyFilter(at: index)                                           // added
         }
     }
+    
+    @Published var toDoFilteredItems: [ToDoItem] = []                                           // added
 
     // MARK: - Inputs
 
@@ -39,9 +44,20 @@ final class ToDoListViewModel: ObservableObject {
     func removeTodoItem(_ item: ToDoItem) {
         toDoItems.removeAll { $0.id == item.id }
     }
-
+    
     /// Apply the filter to update the list.
-    func applyFilter(at index: Int) {
+    func applyFilter(at index: Int) {                                              // modified
         // TODO: - Implement the logic for filtering
+        
+        self.index = index
+                
+        switch index {
+        case 1:
+            toDoFilteredItems = toDoItems.filter { !$0.isDone }
+        case 2:
+            toDoFilteredItems = toDoItems.filter { $0.isDone }
+        default:
+            toDoFilteredItems = toDoItems
+        }
     }
 }

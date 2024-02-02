@@ -1,8 +1,21 @@
 import SwiftUI
 
-enum FilterStatus: String, CaseIterable, Identifiable {
+enum FilterStatus: String, CaseIterable, Identifiable {                                           // added
     case all, toDo, done
     var id: Self { self }
+}
+
+extension FilterStatus {                                           // added
+    var index: Int {
+        switch self {
+        case .all:
+            return 0
+        case .toDo:
+            return 1
+        case .done:
+            return 2
+        }
+    }
 }
 
 struct ToDoListView: View {
@@ -14,26 +27,30 @@ struct ToDoListView: View {
     @State private var isAddingTodo = false
     
     // New state for filter index
-    @State private var filterIndex = 0
-    @State private var filterStatus: FilterStatus = .toDo
+    
+        // deleted filterIndex :: double with FilterStatus
+    
+    @State private var filterStatus: FilterStatus = .toDo                                           // added
     
     var body: some View {
         NavigationView {
             VStack {
                 // Filter selector
                 // TODO: - Add a filter selector which will call the viewModel for updating the displayed data
-                
-                Picker("", selection: $filterStatus) {
+                Picker("", selection: $filterStatus) {                                           // added
                     ForEach(FilterStatus.allCases, id: \.self) { status in
                         Text(status.rawValue.capitalized).tag(status)
                     }
                 }
                 .pickerStyle(.segmented)
                 .padding(.horizontal)
-                
+                .onChange(of: filterStatus) { status in
+                    viewModel.applyFilter(at: status.index)
+                }
+
                 // List of tasks
                 List {
-                    ForEach(viewModel.toDoItems) { item in
+                    ForEach(viewModel.toDoFilteredItems) { item in                                              // modified
                         HStack {
                             Button(action: {
                                 viewModel.toggleTodoItemCompletion(item)
@@ -56,7 +73,7 @@ struct ToDoListView: View {
                         }
                     }
                 }
-                
+
                 // Sticky bottom view for adding todos
                 if isAddingTodo {
                     HStack {
