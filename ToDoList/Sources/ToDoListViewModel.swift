@@ -42,7 +42,8 @@ final class ToDoListViewModel: ObservableObject {
 
     /// Removes a to-do item from the list.
     func removeTodoItem(_ item: ToDoItem) {
-        toDoItems.removeAll { $0.id == item.id }
+        toDoItems.removeAll { toDoItem in
+            toDoItem.id == item.id }
     }
     
     /// Apply the filter to update the list.

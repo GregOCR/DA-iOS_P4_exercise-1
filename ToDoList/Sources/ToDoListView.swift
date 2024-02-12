@@ -20,7 +20,7 @@ extension FilterStatus {                                           // added
 
 struct ToDoListView: View {
     
-    @ObservedObject var viewModel: ToDoListViewModel
+    @StateObject var viewModel: ToDoListViewModel
     
     @State private var newTodoTitle = ""
     @State private var isShowingAlert = false
