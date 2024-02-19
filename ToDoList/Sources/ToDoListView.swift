@@ -68,7 +68,7 @@ struct ToDoListView: View {
                     }
                     .onDelete { indices in
                         indices.forEach { index in
-                            let item = viewModel.toDoItems[index]
+                            let item = viewModel.toDoFilteredItems[index]
                             viewModel.removeTodoItem(item)
                         }
                     }
