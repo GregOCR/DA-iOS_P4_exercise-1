@@ -5,7 +5,7 @@ final class ToDoListViewModel: ObservableObject {
 
     private let repository: ToDoListRepositoryType
     
-    private var index = 1                                           // added
+    private var index = 1 // define the first filtering status (1 = todo items list)
 
     // MARK: - Init
 
@@ -20,11 +20,11 @@ final class ToDoListViewModel: ObservableObject {
     @Published var toDoItems: [ToDoItem] = [] {
         didSet {
             repository.saveToDoItems(toDoItems)
-            applyFilter(at: index)                                           // added
+            applyFilter(at: index) // updating the filtered list or items after updating items
         }
     }
     
-    @Published var toDoFilteredItems: [ToDoItem] = []                                           // added
+    @Published var toDoFilteredItems: [ToDoItem] = [] // filtered items only
 
     // MARK: - Inputs
 
@@ -47,11 +47,9 @@ final class ToDoListViewModel: ObservableObject {
     }
     
     /// Apply the filter to update the list.
-    func applyFilter(at index: Int) {                                              // modified
+    func applyFilter(at index: Int) { // implementation of filtering logic with a switch on index
         // TODO: - Implement the logic for filtering
-        
-        self.index = index
-                
+
         switch index {
         case 1:
             toDoFilteredItems = toDoItems.filter { !$0.isDone }
