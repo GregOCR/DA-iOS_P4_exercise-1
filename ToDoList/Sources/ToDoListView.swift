@@ -1,11 +1,11 @@
 import SwiftUI
 
-enum FilterStatus: String, CaseIterable, Identifiable {                                           // added
+enum FilterStatus: String, CaseIterable, Identifiable { // added enum for filtering mode
     case all, toDo, done
     var id: Self { self }
 }
 
-extension FilterStatus {                                           // added
+extension FilterStatus { // added switch on FilterStatus to return the index number for the applyFilter func in viewModel
     var index: Int {
         switch self {
         case .all:
@@ -28,16 +28,16 @@ struct ToDoListView: View {
     
     // New state for filter index
     
-        // deleted filterIndex :: double with FilterStatus
+    // deleted filterIndex :: double with FilterStatus
     
-    @State private var filterStatus: FilterStatus = .toDo                                           // added
+    @State private var filterStatus: FilterStatus = .toDo // added
     
     var body: some View {
         NavigationView {
             VStack {
                 // Filter selector
                 // TODO: - Add a filter selector which will call the viewModel for updating the displayed data
-                Picker("", selection: $filterStatus) {                                           // added
+                Picker("", selection: $filterStatus) { // added list of filtered items
                     ForEach(FilterStatus.allCases, id: \.self) { status in
                         Text(status.rawValue.capitalized).tag(status)
                     }
