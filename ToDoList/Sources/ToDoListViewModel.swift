@@ -49,6 +49,8 @@ final class ToDoListViewModel: ObservableObject {
     /// Apply the filter to update the list.
     func applyFilter(at index: Int) { // implementation of filtering logic with a switch on index
         // TODO: - Implement the logic for filtering
+        
+        self.index = index
 
         switch index {
         case 1:
