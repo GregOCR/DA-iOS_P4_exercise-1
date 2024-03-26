@@ -1,127 +1,21 @@
 import SwiftUI
 
-enum FilterStatus: String, CaseIterable, Identifiable { // added enum for filtering mode
-    case all, toDo, done
-    var id: Self { self }
-}
-
-extension FilterStatus { // added switch on FilterStatus to return the index number for the applyFilter func in viewModel
-    var index: Int {
-        switch self {
-        case .all:
-            return 0
-        case .toDo:
-            return 1
-        case .done:
-            return 2
-        }
-    }
-}
-
 struct ToDoListView: View {
     
     @StateObject var viewModel: ToDoListViewModel
-    
-    @State private var newTodoTitle = ""
-    @State private var isShowingAlert = false
-    @State private var isAddingTodo = false
-    
-    // New state for filter index
-    
-    // deleted filterIndex :: double with FilterStatus
-    
-    @State private var filterStatus: FilterStatus = .toDo // added
     
     var body: some View {
         NavigationView {
             VStack {
                 // Filter selector
                 // TODO: - Add a filter selector which will call the viewModel for updating the displayed data
-                Picker("", selection: $filterStatus) { // added list of filtered items
-                    ForEach(FilterStatus.allCases, id: \.self) { status in
-                        Text(status.rawValue.capitalized).tag(status)
-                    }
-                }
-                .pickerStyle(.segmented)
-                .padding(.horizontal)
-                .onChange(of: filterStatus) { status in
-                    viewModel.applyFilter(at: status.index)
-                }
-
+                FilteringItemsPickerView(viewModel: viewModel)
+                
                 // List of tasks
-                List {
-                    ForEach(viewModel.toDoFilteredItems) { item in                                              // modified
-                        HStack {
-                            Button(action: {
-                                viewModel.toggleTodoItemCompletion(item)
-                            }) {
-                                Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
-                                    .resizable()
-                                    .frame(width: 25, height: 25)
-                                    .foregroundColor(item.isDone ? .green : .primary)
-                            }
-                            Text(item.title)
-                                .font(item.isDone ? .subheadline : .body)
-                                .strikethrough(item.isDone)
-                                .foregroundColor(item.isDone ? .gray : .primary)
-                        }
-                    }
-                    .onDelete { indices in
-                        indices.forEach { index in
-                            let item = viewModel.toDoFilteredItems[index]
-                            viewModel.removeTodoItem(item)
-                        }
-                    }
-                }
-
+                TasksListView(viewModel: viewModel)
+                
                 // Sticky bottom view for adding todos
-                if isAddingTodo {
-                    HStack {
-                        TextField("Enter Task Title", text: $newTodoTitle)
-                            .padding(.leading)
-                        
-                        Spacer()
-                        
-                        Button(action: {
-                            if newTodoTitle.isEmpty {
-                                isShowingAlert = true
-                            } else {
-                                viewModel.add(
-                                    item: .init(
-                                        title: newTodoTitle
-                                    )
-                                )
-                                newTodoTitle = "" // Reset newTodoTitle to empty.
-                                isAddingTodo = false // Close the bottom view after adding
-                            }
-                        }) {
-                            Image(systemName: "plus.circle.fill")
-                                .resizable()
-                                .frame(width: 30, height: 30)
-                        }
-                    }
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-                    .shadow(radius: 5)
-                    .padding(.horizontal)
-                }
-                
-                // Button to toggle the bottom add view
-                Button(action: {
-                    isAddingTodo.toggle()
-                }) {
-                    Text(isAddingTodo ? "Close" : "Add Task")
-                        .font(.headline)
-                        .foregroundColor(.white)
-                        .frame(maxWidth: .infinity)
-                        .padding()
-                        .background(Color.blue)
-                        .cornerRadius(10)
-                        .shadow(radius: 5)
-                }
-                .padding()
-                
+                TodoAddingView(viewModel: viewModel)
             }
             .navigationBarTitle("To-Do List")
             .navigationBarItems(trailing: EditButton())
@@ -136,5 +30,116 @@ struct ToDoListView_Previews: PreviewProvider {
                 repository: ToDoListRepository()
             )
         )
+    }
+}
+
+struct TasksListView: View {
+    
+    @StateObject var viewModel: ToDoListViewModel
+    
+    var body: some View {
+        List {
+            ForEach(viewModel.toDoFilteredItems) { item in
+                HStack {
+                    Button(action: {
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            viewModel.toggleTodoItemCompletion(item)
+                        }
+                    }) {
+                        Image(systemName: item.isDone ? "checkmark.circle.fill" : "circle")
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                            .foregroundColor(item.isDone ? .green : .primary)
+                    }
+                    Text(item.title)
+                        .font(item.isDone ? .subheadline : .body)
+                        .strikethrough(item.isDone)
+                        .foregroundColor(item.isDone ? .gray : .primary)
+                }
+            }
+            .onDelete { indices in
+                indices.forEach { index in
+                    let item = viewModel.toDoFilteredItems[index]
+                    viewModel.removeTodoItem(item)
+                }
+            }
+        }
+    }
+}
+
+struct TodoAddingView: View {
+    
+    @State private var newTodoTitle = ""
+    @State private var isShowingAlert = false
+    
+    @State private var isAddingTodo = false
+    
+    @StateObject var viewModel: ToDoListViewModel
+    
+    var body: some View {
+        if isAddingTodo {
+            HStack {
+                TextField("Enter Task Title", text: $newTodoTitle)
+                    .padding(.leading)
+                Spacer()
+                Button(action: {
+                    if newTodoTitle.isEmpty {
+                        isShowingAlert = true
+                    } else {
+                        withAnimation(.easeInOut(duration: 0.1)) {
+                            viewModel.add(
+                                item: .init(
+                                    title: newTodoTitle
+                                )
+                            )
+                            newTodoTitle = "" // Reset newTodoTitle to empty.
+                            isAddingTodo = false // Close the bottom view after adding
+                        }
+                    }
+                }) {
+                    Image(systemName: "plus.circle.fill")
+                        .resizable()
+                        .frame(width: 30, height: 30)
+                }
+            }
+            .padding()
+            .background(Color.white)
+            .cornerRadius(10)
+            .shadow(radius: 5)
+            .padding(.horizontal)
+            
+        }
+        Button(action: {
+                isAddingTodo.toggle()
+        }) {
+            Text(isAddingTodo ? "Close" : "Add Task")
+                .font(.headline)
+                .foregroundColor(.white)
+                .frame(maxWidth: .infinity)
+                .padding()
+                .background(Color.blue)
+                .cornerRadius(10)
+                .shadow(radius: 5)
+        }
+        .padding()
+    }
+}
+
+struct FilteringItemsPickerView: View {
+    
+    @StateObject var viewModel: ToDoListViewModel
+    
+    var body: some View {
+        // added picker to choose filter type
+        Picker("", selection: $viewModel.filterStatus) {
+            ForEach(FilterStatus.allCases, id: \.self) { status in
+                Text(status.rawValue.capitalized).tag(status)
+            }
+        }
+        .pickerStyle(.segmented)
+        .padding(.horizontal)
+        .onChange(of: viewModel.filterStatus) {
+            viewModel.applyFilter(for: $0)
+        }
     }
 }
